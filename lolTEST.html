@@ -380,7 +380,7 @@
 
 
 
-      const mbti =
+      mbti =
         majority(ei, ["E", "I"]) +
         majority(sn, ["S", "N"]) +
         majority(ft, ["F", "T"]) +
@@ -584,7 +584,7 @@
 
       const champGroup = champions[mbti] || champions["default"];
       const desc = mbtiDescriptions[mbti] || mbtiDescriptions["default"];
-      const champ = champGroup[gender] || champions["default"][gender];
+      champ = champGroup[gender] || champions["default"][gender];
       document.getElementById("resultBox").innerHTML =
         `
           <p><strong>${mbti}</strong> 타입의 당신에게 어울리는 챔피언은<br>
