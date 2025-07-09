@@ -7,13 +7,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link rel="shortcut icon" href="images/favicon/melody.ico" type="image/x-icon">
   <link rel="stylesheet" href="stylesheet.css">
-
-  <script src="https://developers.kakao.com/sdk/js/kakao.js"></script>
-  <script>
-    Kakao.init('9cc9b8181e4bb732ff409fb874ea6174');
-  </script>
-
-
   <style>
     body {
       background-color: #fffdf7;
@@ -52,41 +45,12 @@
     button:hover {
       background-color: #e8a1a1;
     }
-    @media (max-width: 600px) {
-      .container {
-        padding: 20px 5px;
-        max-width: 100%;
-      }
-      .question-block {
-        padding: 12px;
-        font-size: 1em;
-      }
-      .question-title {
-        font-size: 1.1em;
-      }
-      button {
-        width: 100%;
-        margin: 8px 0;
-        font-size: 1.1em;
-      }
-      #progress-bar-bg {
-        height: 10px;
-      }
-      .result {
-        font-size: 1em;
-        padding: 10px 0;
-      }
-      img {
-        max-width: 100%;
-        height: auto;
-      }
-    }
   </style>
 </head>
 
 <body>
   <div class="container">
-    <h1 style="text-align:center;">🎮 ?</h1>
+    <h1 style="text-align:center;">💌미미가 알려줄게, 너와 어울리는 롤 챔피언🎮</h1>
     <div id="genderBlock" class="question-block">
         <div class="question-title">성별을 선택하세요:</div>
         <label><input type="radio" name="gender" value="male"> 남성</label><br>
@@ -120,52 +84,20 @@
 
   <script>
 
-    function shareKakao() {
-      // 카카오 SDK가 필요합니다. (아래 참고)
-      if (window.Kakao && window.Kakao.isInitialized()) {
-        window.Kakao.Link.sendDefault({
-          objectType: 'feed',
-          content: {
-            title: '나의 LoL MBTI 결과',
-            description: `나는 ${mbti} (${champ.name})!`,
-            imageUrl: champ.image,
-            link: {
-              mobileWebUrl: location.href,
-              webUrl: location.href
-            }
-          }
-        });
-      } else {
-        alert("카카오톡 공유를 사용하려면 카카오 SDK가 필요합니다.");
-      }
-    }
-
-    function shareTwitter() {
-      const text = encodeURIComponent(`나의 LoL MBTI 결과는 ${mbti} (${champ.name})!`);
-      const url = encodeURIComponent(location.href);
-      window.open(`https://twitter.com/intent/tweet?text=${text}&url=${url}`, "_blank");
-    }
-
-    function copyLink() {
-      navigator.clipboard.writeText(location.href)
-        .then(() => alert("링크가 복사되었습니다!"))
-        .catch(() => alert("복사 실패!"));
-    }
-
-
+  
     const questions = [
-      { name: "ei1", type: "E/I", text: "E/I 질문 예시 1", options: ["E", "I"] },
-      { name: "ei2", type: "E/I", text: "E/I 질문 예시 2", options: ["E", "I"] },
-      { name: "ei3", type: "E/I", text: "E/I 질문 예시 3", options: ["E", "I"] },
-      { name: "sn1", type: "S/N", text: "S/N 질문 예시 1", options: ["S", "N"] },
-      { name: "sn2", type: "S/N", text: "S/N 질문 예시 2", options: ["S", "N"] },
-      { name: "sn3", type: "S/N", text: "S/N 질문 예시 3", options: ["S", "N"] },
-      { name: "ft1", type: "F/T", text: "F/T 질문 예시 1", options: ["F", "T"] },
-      { name: "ft2", type: "F/T", text: "F/T 질문 예시 2", options: ["F", "T"] },
-      { name: "ft3", type: "F/T", text: "F/T 질문 예시 3", options: ["F", "T"] },
-      { name: "pj1", type: "P/J", text: "P/J 질문 예시 1", options: ["P", "J"] },
-      { name: "pj2", type: "P/J", text: "P/J 질문 예시 2", options: ["P", "J"] },
-      { name: "pj3", type: "P/J", text: "P/J 질문 예시 3", options: ["P", "J"] }
+      { name: "ei1", type: "E/I", text: "3인큐 하려는데 친구가 하는 말, 내 친구 2명 불러도 돼?", options: ["오 5인큐? 당장 불러.", "난 그냥 3인큐도 좋은데.."] },
+      { name: "ei2", type: "E/I", text: "어쩌다 참가하게 된 지인 배 5대5. 디스코드에서의 나,", options: ["내전? 도파민 터지네, 적극 보이스!", "주로 듣는다. 필요한 오더만!"] },
+      { name: "ei3", type: "E/I", text: "새 시즌 시작! 이번 주말이면 나는?", options: ["친구 모아서 같이 와장창 돌릴 준비 완.", "내 루틴대로 연습부터. 혼자만의 연마를 시작하지."] },
+      { name: "sn1", type: "S/N", text: "새로운 패치가 떴다.", options: ["구체적인 수치 변화부터 본다.", "전체적인 메타 흐름 파악 먼저."] },
+      { name: "sn2", type: "S/N", text: "라인전에서 CS를 먹을 때", options: ["정확한 타이밍 계산이 중요해.", "라인전은 곧 심리전. 상대 심리 파악이 중요해."] },
+      { name: "sn3", type: "S/N", text: "솔직히 내 원픽챔, 이렇게 골라졌다.", options: ["승률, 티어표, 픽률 참고. 확신의 강챔.", "느낌, 스타일, 너가 나를 이리로 이끌었다."] },
+      { name: "ft1", type: "F/T", text: "팀원이 트롤을 했다. 고의는 아닌 것 같은데,", options: ["그래 쟤도 얼마나 고생이냐. 내가 캐리해보자.", "롤은 팀 게임. 넌 나가라."] },
+      { name: "ft2", type: "F/T", text: "친구가 이 챔피언 예쁘지 않냐고 한다. 그런데 하나도 안 예쁘다. 나의 대답은?", options: ["괜찮은데?", "하나도 안 예뻐."] },
+      { name: "ft3", type: "F/T", text: "같이 하는 친구가 자꾸 같은 실수를 반복한다. 이 판이 끝나고 나는?", options: ["분위기 망칠까 봐 그냥 넘어간다.", "확실하게 뭐가 문제인지 얘기해준다."] },
+      { name: "pj1", type: "P/J", text: "픽창에서 챔피언을 고르려다 시간이 다 됐다. 랜덤으로 골라진 챔피언.. 내 반응은?", options: ["(애써) 오히려 좋아. 가는 거야!", "... (이번 판 내내 찝찝함)"] },
+      { name: "pj2", type: "P/J", text: "할 일이 남았는데 친구가 게임하자고 한다.", options: ["그래, 같이 게임하려면 지금 해야지. 할 일은 2시간 뒤에 할래.", "일단 할 일 끝나면 연락 준다고 말하고 하려던 일부터."] },
+      { name: "pj3", type: "P/J", text: "이번 시즌 목표는 플래티넘. 어떻게 접근할까?", options: ["일단 큐부터 돌리고 보자. 하다 보면 오르겠지.", "각종 유튜브 참고. 목표, 스케줄, 챔프 폭 좀 짜두고 차근차근 간다."] }
     ];
 
     let currentIndex = 0;
@@ -272,7 +204,6 @@
         renderQuestion(currentIndex);
       }
     };
-    let mbti, champ; // 전역 선언 test중
 
     document.getElementById("mbtiForm").onsubmit = function(e) {
       e.preventDefault();
@@ -283,13 +214,31 @@
       const ft = [answers["ft1"], answers["ft2"], answers["ft3"]];
       const pj = [answers["pj1"], answers["pj2"], answers["pj3"]];
 
-      function majority(arr) {
+      function majority(arr, priorityOrder) {
         const count = {};
-        arr.forEach(v => count[v] = (count[v] || 0) + 1);
-        return count[arr[0]] > 1 ? arr[0] : arr[1];
+        arr.forEach(v => {
+          if (v) count[v] = (count[v] || 0) + 1;
+        });
+
+        const [a, b] = priorityOrder;
+        const aCount = count[a] || 0;
+        const bCount = count[b] || 0;
+
+        if (aCount > bCount) return a;
+        if (bCount > aCount) return b;
+
+        // 동점일 경우 우선순위 적용
+        return a;
       }
 
-      const mbti = majority(ei) + majority(sn) + majority(ft) + majority(pj);
+
+
+      const mbti =
+        majority(ei, ["E", "I"]) +
+        majority(sn, ["S", "N"]) +
+        majority(ft, ["F", "T"]) +
+        majority(pj, ["P", "J"]);
+
 
       const champions = {
         "INTJ": {
@@ -308,7 +257,7 @@
             image: "https://ddragon.leagueoflegends.com/cdn/img/champion/splash/Viktor_0.jpg"
             },
             female: {
-            name: "벨코즈 (여장 가능)",
+            name: "벨코즈",
             image: "https://ddragon.leagueoflegends.com/cdn/img/champion/splash/Velkoz_0.jpg"
             }
         },
@@ -318,7 +267,7 @@
             image: "https://ddragon.leagueoflegends.com/cdn/img/champion/splash/Swain_0.jpg"
             },
             female: {
-            name: "레넥톤 (여장 불가)",
+            name: "레넥톤",
             image: "https://ddragon.leagueoflegends.com/cdn/img/champion/splash/Renekton_0.jpg"
             }
         },
@@ -464,19 +413,36 @@
         }
       };
 
+      const mbtiDescriptions = {
+        "INTJ": "차갑고 치밀한",
+        "INTP": "논리의 심연에 빠진",
+        "ENTJ": "리더의 본능을 지닌",
+        "ENTP": "예측불허의 꾼",
+        "INFJ": "운명의 흐름을 읽는",
+        "INFP": "마음이 따뜻한 몽상가",
+        "ENFJ": "분위기를 이끄는 주인공",
+        "ENFP": "활발하게 날뛰는 폭죽",
+        "ISTJ": "묵묵히 승리를 쌓는",
+        "ISFJ": "조용히 팀을 받치는",
+        "ESTJ": "질서와 구조의 수호자",
+        "ESFJ": "모두의 팀원을 챙기는",
+        "ISTP": "쿨하고 즉흥적인",
+        "ISFP": "섬세하고 감각적인",
+        "ESTP": "무대 위의 핵심",
+        "ESFP": "에너지 넘치는 장난꾸러기",
+        "default": "미지의 정체성을 지닌"
+      };
+
+
 
       const champGroup = champions[mbti] || champions["default"];
+      const desc = mbtiDescriptions[mbti] || mbtiDescriptions["default"];
       const champ = champGroup[gender] || champions["default"][gender];
       document.getElementById("resultBox").innerHTML =
         `
-          <p><strong>${mbti}</strong> 타입의 당신에게 어울리는 챔피언은<br>
-          <strong>${champ.name}</strong> 입니다!</p>
-          <img src="${champ.image}" alt="${champ.name}" style="max-width:100%; border-radius: 12px; margin-top: 20px;">
-          <div style="margin-top:20px;">
-            <button onclick="shareKakao()">카카오톡 공유</button>
-            <button onclick="shareTwitter()">트위터 공유</button>
-            <button onclick="copyLink()">링크 복사</button>
-          </div>
+            <p><strong>${desc}</strong> 당신에게 어울리는 챔피언은<br>
+            <strong>${champ.name}</strong> 입니다!</p>
+            <img src="${champ.image}" alt="${champ.name}" style="max-width:100%; border-radius: 12px; margin-top: 20px;">
         `;
 
 
