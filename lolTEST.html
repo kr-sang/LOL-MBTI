@@ -1,0 +1,486 @@
+<!DOCTYPE HTML>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>LoL MBTI Finder</title>
+  <meta name="author" content="Mijin Yoo, Sangwoo Choi">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="shortcut icon" href="images/favicon/melody.ico" type="image/x-icon">
+  <link rel="stylesheet" href="stylesheet.css">
+
+  <script src="https://developers.kakao.com/sdk/js/kakao.js"></script>
+  <script>
+    Kakao.init('9cc9b8181e4bb732ff409fb874ea6174');
+  </script>
+
+
+  <style>
+    body {
+      background-color: #fffdf7;
+      font-family: sans-serif;
+      margin: 0;
+    }
+    .container {
+      max-width: 800px;
+      margin: auto;
+      padding: 40px 20px;
+    }
+    .question-block {
+      margin-bottom: 30px;
+      padding: 20px;
+      background: #fef0f4;
+      border-radius: 10px;
+    }
+    .question-title {
+      font-weight: bold;
+      margin-bottom: 10px;
+    }
+    .result {
+      margin-top: 40px;
+      font-size: 1.2em;
+      text-align: center;
+    }
+    button {
+      background-color: #f4c2c2;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 1em;
+      margin: 5px;
+    }
+    button:hover {
+      background-color: #e8a1a1;
+    }
+    @media (max-width: 600px) {
+      .container {
+        padding: 20px 5px;
+        max-width: 100%;
+      }
+      .question-block {
+        padding: 12px;
+        font-size: 1em;
+      }
+      .question-title {
+        font-size: 1.1em;
+      }
+      button {
+        width: 100%;
+        margin: 8px 0;
+        font-size: 1.1em;
+      }
+      #progress-bar-bg {
+        height: 10px;
+      }
+      .result {
+        font-size: 1em;
+        padding: 10px 0;
+      }
+      img {
+        max-width: 100%;
+        height: auto;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <h1 style="text-align:center;">🎮 ?</h1>
+    <div id="genderBlock" class="question-block">
+        <div class="question-title">성별을 선택하세요:</div>
+        <label><input type="radio" name="gender" value="male"> 남성</label><br>
+        <label><input type="radio" name="gender" value="female"> 여성</label><br><br>
+        <div style="text-align:center;">
+            <button type="button" onclick="startTest()">시작하기</button>
+        </div>
+    </div>
+
+    <form id="mbtiForm" style="display: none;">
+      <div id="progress-container" style="margin-bottom: 20px;">
+        <div id="progress-bar-bg" style="background-color: #ffe4ec; height: 12px; border-radius: 6px; overflow: hidden;">
+            <div id="progress-bar" style="width: 0%; height: 100%; background-color: #f4c2c2; transition: width 0.3s ease;"></div>
+        </div>
+        <div id="progress-text" style="text-align: center; margin-top: 8px;"><strong>1 / 12</strong></div>
+      </div>
+
+
+      <div class="question-block" id="questionBlock"></div>
+
+      <div style="text-align:center;">
+        <button type="button" id="restartBtn">처음으로</button>
+        <button type="button" id="prevBtn">이전</button>
+        <button type="button" id="nextBtn">다음</button>
+        <button type="submit" id="submitBtn" style="display:none;">결과 보기</button>
+      </div>
+    </form>
+
+    <div class="result" id="resultBox"></div>
+  </div>
+
+  <script>
+
+    function shareKakao() {
+      // 카카오 SDK가 필요합니다. (아래 참고)
+      if (window.Kakao && window.Kakao.isInitialized()) {
+        window.Kakao.Link.sendDefault({
+          objectType: 'feed',
+          content: {
+            title: '나의 LoL MBTI 결과',
+            description: `나는 ${mbti} (${champ.name})!`,
+            imageUrl: champ.image,
+            link: {
+              mobileWebUrl: location.href,
+              webUrl: location.href
+            }
+          }
+        });
+      } else {
+        alert("카카오톡 공유를 사용하려면 카카오 SDK가 필요합니다.");
+      }
+    }
+
+    function shareTwitter() {
+      const text = encodeURIComponent(`나의 LoL MBTI 결과는 ${mbti} (${champ.name})!`);
+      const url = encodeURIComponent(location.href);
+      window.open(`https://twitter.com/intent/tweet?text=${text}&url=${url}`, "_blank");
+    }
+
+    function copyLink() {
+      navigator.clipboard.writeText(location.href)
+        .then(() => alert("링크가 복사되었습니다!"))
+        .catch(() => alert("복사 실패!"));
+    }
+
+
+    const questions = [
+      { name: "ei1", type: "E/I", text: "E/I 질문 예시 1", options: ["E", "I"] },
+      { name: "ei2", type: "E/I", text: "E/I 질문 예시 2", options: ["E", "I"] },
+      { name: "ei3", type: "E/I", text: "E/I 질문 예시 3", options: ["E", "I"] },
+      { name: "sn1", type: "S/N", text: "S/N 질문 예시 1", options: ["S", "N"] },
+      { name: "sn2", type: "S/N", text: "S/N 질문 예시 2", options: ["S", "N"] },
+      { name: "sn3", type: "S/N", text: "S/N 질문 예시 3", options: ["S", "N"] },
+      { name: "ft1", type: "F/T", text: "F/T 질문 예시 1", options: ["F", "T"] },
+      { name: "ft2", type: "F/T", text: "F/T 질문 예시 2", options: ["F", "T"] },
+      { name: "ft3", type: "F/T", text: "F/T 질문 예시 3", options: ["F", "T"] },
+      { name: "pj1", type: "P/J", text: "P/J 질문 예시 1", options: ["P", "J"] },
+      { name: "pj2", type: "P/J", text: "P/J 질문 예시 2", options: ["P", "J"] },
+      { name: "pj3", type: "P/J", text: "P/J 질문 예시 3", options: ["P", "J"] }
+    ];
+
+    let currentIndex = 0;
+    const answers = {};
+    let gender = "";
+
+    const questionBlock = document.getElementById("questionBlock");
+    const restartBtn = document.getElementById("restartBtn");
+    const prevBtn = document.getElementById("prevBtn");
+    const nextBtn = document.getElementById("nextBtn");
+    const submitBtn = document.getElementById("submitBtn");
+
+    function shuffle(array) {
+        for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+        }
+    }
+
+    shuffle(questions);  // 질문 섞기 실행
+
+    function startTest() {
+        const selected = document.querySelector('input[name="gender"]:checked');
+        if (!selected) {
+        alert("성별을 선택해주세요.");
+        return;
+        }
+        gender = selected.value;
+        document.getElementById("genderBlock").style.display = "none";
+        document.getElementById("mbtiForm").style.display = "block";
+        renderQuestion(currentIndex);
+    }
+
+    function renderQuestion(index) {
+      const q = questions[index];
+      const progressPercent = ((index + 1) / questions.length) * 100;
+      document.getElementById("progress-bar").style.width = `${progressPercent}%`;
+      document.getElementById("progress-text").innerHTML = `<strong>${index + 1} / ${questions.length}</strong>`;
+      const selected = answers[q.name] || "";
+      questionBlock.innerHTML = `
+        <div class="question-title">${q.text}</div>
+        ${q.options.map(opt => `
+          <label>
+            <input type="radio" name="${q.name}" value="${opt}" ${selected === opt ? "checked" : ""}> ${opt}
+          </label><br>`).join("")}
+      `;
+      prevBtn.style.display = index > 0 ? "inline-block" : "none";
+      nextBtn.style.display = index < questions.length - 1 ? "inline-block" : "none";
+      submitBtn.style.display = index === questions.length - 1 ? "inline-block" : "none";
+    }
+
+
+    document.addEventListener("keydown", function(e) {
+        if (e.key === "Enter") {
+            const isFormVisible = document.getElementById("mbtiForm").style.display !== "none";
+
+            if (isFormVisible && currentIndex < questions.length - 1) {
+            e.preventDefault();
+            nextBtn.click();  // 다음 버튼 누른 것처럼 동작
+            }
+        }
+    });
+
+
+    function saveAnswer() {
+      const q = questions[currentIndex];
+      const selected = document.querySelector(`input[name="${q.name}"]:checked`);
+      if (selected) answers[q.name] = selected.value;
+    }
+
+    renderQuestion(currentIndex);
+
+    restartBtn.onclick = () => {
+        // 상태 초기화
+        currentIndex = 0;
+        for (const key in answers) delete answers[key];
+        gender = "";
+
+        // UI 초기화
+        document.getElementById("mbtiForm").style.display = "none";
+        document.getElementById("genderBlock").style.display = "block";
+        document.getElementById("resultBox").innerHTML = "";
+
+        // 라디오 선택 해제
+        document.querySelectorAll('input[name="gender"]').forEach(el => el.checked = false);
+    };
+
+    prevBtn.onclick = () => {
+      saveAnswer();
+      if (currentIndex > 0) {
+        currentIndex--;
+        renderQuestion(currentIndex);
+      }
+    };
+
+    nextBtn.onclick = () => {
+      if (!document.querySelector(`input[name="${questions[currentIndex].name}"]:checked`)) {
+        alert("답변을 선택해주세요.");
+        return;
+      }
+      saveAnswer();
+      if (currentIndex < questions.length - 1) {
+        currentIndex++;
+        renderQuestion(currentIndex);
+      }
+    };
+    let mbti, champ; // 전역 선언 test중
+
+    document.getElementById("mbtiForm").onsubmit = function(e) {
+      e.preventDefault();
+      saveAnswer();
+
+      const ei = [answers["ei1"], answers["ei2"], answers["ei3"]];
+      const sn = [answers["sn1"], answers["sn2"], answers["sn3"]];
+      const ft = [answers["ft1"], answers["ft2"], answers["ft3"]];
+      const pj = [answers["pj1"], answers["pj2"], answers["pj3"]];
+
+      function majority(arr) {
+        const count = {};
+        arr.forEach(v => count[v] = (count[v] || 0) + 1);
+        return count[arr[0]] > 1 ? arr[0] : arr[1];
+      }
+
+      const mbti = majority(ei) + majority(sn) + majority(ft) + majority(pj);
+
+      const champions = {
+        "INTJ": {
+            male: {
+            name: "제드",
+            image: "https://ddragon.leagueoflegends.com/cdn/img/champion/splash/Zed_0.jpg"
+            },
+            female: {
+            name: "리산드라",
+            image: "https://ddragon.leagueoflegends.com/cdn/img/champion/splash/Lissandra_0.jpg"
+            }
+        },
+        "INTP": {
+            male: {
+            name: "빅토르",
+            image: "https://ddragon.leagueoflegends.com/cdn/img/champion/splash/Viktor_0.jpg"
+            },
+            female: {
+            name: "벨코즈 (여장 가능)",
+            image: "https://ddragon.leagueoflegends.com/cdn/img/champion/splash/Velkoz_0.jpg"
+            }
+        },
+        "ENTJ": {
+            male: {
+            name: "스웨인",
+            image: "https://ddragon.leagueoflegends.com/cdn/img/champion/splash/Swain_0.jpg"
+            },
+            female: {
+            name: "레넥톤 (여장 불가)",
+            image: "https://ddragon.leagueoflegends.com/cdn/img/champion/splash/Renekton_0.jpg"
+            }
+        },
+        "ENTP": {
+            male: {
+            name: "에코",
+            image: "https://ddragon.leagueoflegends.com/cdn/img/champion/splash/Ekko_0.jpg"
+            },
+            female: {
+            name: "이블린",
+            image: "https://ddragon.leagueoflegends.com/cdn/img/champion/splash/Evelynn_0.jpg"
+            }
+        },
+        "INFJ": {
+            male: {
+            name: "야스오",
+            image: "https://ddragon.leagueoflegends.com/cdn/img/champion/splash/Yasuo_0.jpg"
+            },
+            female: {
+            name: "카르마",
+            image: "https://ddragon.leagueoflegends.com/cdn/img/champion/splash/Karma_0.jpg"
+            }
+        },
+        "INFP": {
+            male: {
+            name: "바루스",
+            image: "https://ddragon.leagueoflegends.com/cdn/img/champion/splash/Varus_0.jpg"
+            },
+            female: {
+            name: "유미",
+            image: "https://ddragon.leagueoflegends.com/cdn/img/champion/splash/Yuumi_0.jpg"
+            }
+        },
+        "ENFJ": {
+            male: {
+            name: "브라움",
+            image: "https://ddragon.leagueoflegends.com/cdn/img/champion/splash/Braum_0.jpg"
+            },
+            female: {
+            name: "세나",
+            image: "https://ddragon.leagueoflegends.com/cdn/img/champion/splash/Senna_0.jpg"
+            }
+        },
+        "ENFP": {
+            male: {
+            name: "라칸",
+            image: "https://ddragon.leagueoflegends.com/cdn/img/champion/splash/Rakan_0.jpg"
+            },
+            female: {
+            name: "징크스",
+            image: "https://ddragon.leagueoflegends.com/cdn/img/champion/splash/Jinx_0.jpg"
+            }
+        },
+        "ISTJ": {
+            male: {
+            name: "말파이트",
+            image: "https://ddragon.leagueoflegends.com/cdn/img/champion/splash/Malphite_0.jpg"
+            },
+            female: {
+            name: "케일",
+            image: "https://ddragon.leagueoflegends.com/cdn/img/champion/splash/Kayle_0.jpg"
+            }
+        },
+        "ISFJ": {
+            male: {
+            name: "럼블",
+            image: "https://ddragon.leagueoflegends.com/cdn/img/champion/splash/Rumble_0.jpg"
+            },
+            female: {
+            name: "소라카",
+            image: "https://ddragon.leagueoflegends.com/cdn/img/champion/splash/Soraka_0.jpg"
+            }
+        },
+        "ESTJ": {
+            male: {
+            name: "판테온",
+            image: "https://ddragon.leagueoflegends.com/cdn/img/champion/splash/Pantheon_0.jpg"
+            },
+            female: {
+            name: "레오나",
+            image: "https://ddragon.leagueoflegends.com/cdn/img/champion/splash/Leona_0.jpg"
+            }
+        },
+        "ESFJ": {
+            male: {
+            name: "갈리오",
+            image: "https://ddragon.leagueoflegends.com/cdn/img/champion/splash/Galio_0.jpg"
+            },
+            female: {
+            name: "룰루",
+            image: "https://ddragon.leagueoflegends.com/cdn/img/champion/splash/Lulu_0.jpg"
+            }
+        },
+        "ISTP": {
+            male: {
+            name: "그레이브즈",
+            image: "https://ddragon.leagueoflegends.com/cdn/img/champion/splash/Graves_0.jpg"
+            },
+            female: {
+            name: "카타리나",
+            image: "https://ddragon.leagueoflegends.com/cdn/img/champion/splash/Katarina_0.jpg"
+            }
+        },
+        "ISFP": {
+            male: {
+            name: "케넨",
+            image: "https://ddragon.leagueoflegends.com/cdn/img/champion/splash/Kennen_0.jpg"
+            },
+            female: {
+            name: "아리",
+            image: "https://ddragon.leagueoflegends.com/cdn/img/champion/splash/Ahri_0.jpg"
+            }
+        },
+        "ESTP": {
+            male: {
+            name: "드레이븐",
+            image: "https://ddragon.leagueoflegends.com/cdn/img/champion/splash/Draven_0.jpg"
+            },
+            female: {
+            name: "니코",
+            image: "https://ddragon.leagueoflegends.com/cdn/img/champion/splash/Neeko_0.jpg"
+            }
+        },
+        "ESFP": {
+            male: {
+            name: "브랜드",
+            image: "https://ddragon.leagueoflegends.com/cdn/img/champion/splash/Brand_0.jpg"
+            },
+            female: {
+            name: "세라핀",
+            image: "https://ddragon.leagueoflegends.com/cdn/img/champion/splash/Seraphine_0.jpg"
+            }
+        },
+        "default": {
+            male: {
+            name: "티모",
+            image: "https://ddragon.leagueoflegends.com/cdn/img/champion/splash/Teemo_0.jpg"
+            },
+            female: {
+            name: "티모",
+            image: "https://ddragon.leagueoflegends.com/cdn/img/champion/splash/Teemo_0.jpg"
+            }
+        }
+      };
+
+
+      const champGroup = champions[mbti] || champions["default"];
+      const champ = champGroup[gender] || champions["default"][gender];
+      document.getElementById("resultBox").innerHTML =
+        `
+          <p><strong>${mbti}</strong> 타입의 당신에게 어울리는 챔피언은<br>
+          <strong>${champ.name}</strong> 입니다!</p>
+          <img src="${champ.image}" alt="${champ.name}" style="max-width:100%; border-radius: 12px; margin-top: 20px;">
+          <div style="margin-top:20px;">
+            <button onclick="shareKakao()">카카오톡 공유</button>
+            <button onclick="shareTwitter()">트위터 공유</button>
+            <button onclick="copyLink()">링크 복사</button>
+          </div>
+        `;
+
+
+    };
+  </script>
+</body>
+</html>
